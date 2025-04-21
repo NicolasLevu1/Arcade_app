@@ -55,7 +55,7 @@
 
     .track {
       position: absolute;
-      bottom: 0;
+      bottom: 40px; /* ⬆️ raised from the very bottom */
       display: flex;
       align-items: center;
       z-index: 0;
@@ -111,6 +111,11 @@
       z-index: 2;
     }
 
+    .pacman.left::before {
+      clip-path: polygon(50% 50%, 0% 0%, 0% 100%);
+      animation: chompLeft 0.3s infinite alternate;
+    }
+
     .pacman::after {
       content: '';
       position: absolute;
@@ -122,10 +127,6 @@
       left: 33px;
     }
 
-    .pacman.left::before {
-      clip-path: polygon(50% 50%, 0% 0%, 0% 100%);
-    }
-
     .pacman.left::after {
       left: 10px;
     }
@@ -133,6 +134,11 @@
     @keyframes chomp {
       0%   { clip-path: polygon(50% 50%, 100% 0%, 100% 100%); }
       100% { clip-path: polygon(50% 50%, 100% 30%, 100% 70%); }
+    }
+
+    @keyframes chompLeft {
+      0%   { clip-path: polygon(50% 50%, 0% 0%, 0% 100%); }
+      100% { clip-path: polygon(50% 50%, 0% 30%, 0% 70%); }
     }
 
     .ghost {
@@ -163,10 +169,15 @@
     .ghost.cyan   { background: #0ff; }
     .ghost.orange { background: orange; }
 
+    .ghost.vulnerable {
+      background: #001aff !important;
+    }
+
     .ghost.red::before, .ghost.red::after,
     .ghost.pink::before, .ghost.pink::after,
     .ghost.cyan::before, .ghost.cyan::after,
-    .ghost.orange::before, .ghost.orange::after {
+    .ghost.orange::before, .ghost.orange::after,
+    .ghost.vulnerable::before, .ghost.vulnerable::after {
       background: inherit;
     }
 
@@ -189,16 +200,16 @@
     <div class="ghost pink"></div>
     <div class="ghost cyan"></div>
     <div class="ghost orange"></div>
-    <div class="pacman left"></div>
+    <div class="pacman"></div>
   </div>
 
-  <!-- Ghosts fleeing Pac-Man (right to left) -->
+  <!-- Ghosts fleeing Pac-Man (right to left - blue ghosts) -->
   <div class="track animation-2" style="right: -400px;">
-    <div class="ghost red"></div>
-    <div class="ghost pink"></div>
-    <div class="ghost cyan"></div>
-    <div class="ghost orange"></div>
-    <div class="pacman"></div>
+    <div class="ghost vulnerable"></div>
+    <div class="ghost vulnerable"></div>
+    <div class="ghost vulnerable"></div>
+    <div class="ghost vulnerable"></div>
+    <div class="pacman left"></div>
   </div>
 
   <div class="dashboard">
