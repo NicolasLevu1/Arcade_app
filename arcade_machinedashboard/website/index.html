@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Arcade Dashboard</title>
+  <style>
+    body {
+      margin: 0;
+      background: black;
+      font-family: 'Courier New', monospace;
+      color: #0ff;
+      overflow: hidden;
+    }
+
+    h1 {
+      font-size: 48px;
+      margin-top: 100px;
+      text-align: center;
+      text-shadow: 0 0 10px #0ff;
+    }
+
+    .dashboard {
+      position: relative;
+      z-index: 2;
+      text-align: center;
+    }
+
+    .stat {
+      font-size: 24px;
+      margin: 15px;
+      text-shadow: 0 0 5px #0ff;
+    }
+
+    button {
+      font-size: 18px;
+      padding: 10px 30px;
+      margin-top: 20px;
+      border: 2px solid #0ff;
+      background: black;
+      color: #0ff;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: 0.3s ease;
+    }
+
+    button:hover {
+      background: #0ff;
+      color: #000;
+    }
+
+    .loading {
+      font-size: 14px;
+      margin-top: 20px;
+      color: #888;
+    }
+
+    .track {
+      position: absolute;
+      bottom: 0;
+      display: flex;
+      align-items: center;
+      z-index: 0;
+    }
+
+    .animation-1, .animation-2 {
+      animation-duration: 10s;
+      animation-timing-function: linear;
+      animation-iteration-count: infinite;
+    }
+
+    .animation-1 {
+      animation-name: moveRight;
+    }
+
+    .animation-2 {
+      animation-name: moveLeft;
+    }
+
+    @keyframes moveRight {
+      0%   { left: -400px; opacity: 1; }
+      49%  { left: 100vw; opacity: 1; }
+      50%  { opacity: 0; }
+      100% { opacity: 0; }
+    }
+
+    @keyframes moveLeft {
+      0%, 49% { opacity: 0; }
+      50%  { right: -400px; opacity: 1; }
+      100% { right: 100vw; opacity: 1; }
+    }
+
+    .pacman {
+      position: relative;
+      width: 50px;
+      height: 50px;
+      background: yellow;
+      border-radius: 50%;
+      margin: 0 15px;
+      overflow: hidden;
+      z-index: 1;
+    }
+
+    .pacman::before {
+      content: '';
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      background: black;
+      clip-path: polygon(50% 50%, 100% 0%, 100% 100%);
+      transform-origin: center;
+      animation: chomp 0.3s infinite alternate;
+      z-index: 2;
+    }
+
+    .pacman::after {
+      content: '';
+      position: absolute;
+      width: 8px;
+      height: 8px;
+      background: black;
+      border-radius: 50%;
+      top: 10px;
+      left: 33px;
+    }
+
+    .pacman.left::before {
+      clip-path: polygon(50% 50%, 0% 0%, 0% 100%);
+    }
+
+    .pacman.left::after {
+      left: 10px;
+    }
+
+    @keyframes chomp {
+      0%   { clip-path: polygon(50% 50%, 100% 0%, 100% 100%); }
+      100% { clip-path: polygon(50% 50%, 100% 30%, 100% 70%); }
+    }
+
+    .ghost {
+      width: 35px;
+      height: 35px;
+      border-radius: 50% 50% 0 0;
+      position: relative;
+      margin: 0 10px;
+      animation:
+        ghostBlink 1s infinite alternate,
+        floatGhost 2s ease-in-out infinite;
+    }
+
+    .ghost::before, .ghost::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+    }
+
+    .ghost::before { left: 0; }
+    .ghost::after { right: 0; }
+
+    .ghost.red    { background: #f00; }
+    .ghost.pink   { background: #f8a; }
+    .ghost.cyan   { background: #0ff; }
+    .ghost.orange { background: orange; }
+
+    .ghost.red::before, .ghost.red::after,
+    .ghost.pink::before, .ghost.pink::after,
+    .ghost.cyan::before, .ghost.cyan::after,
+    .ghost.orange::before, .ghost.orange::after {
+      background: inherit;
+    }
+
+    @keyframes ghostBlink {
+      0% { opacity: 1; }
+      100% { opacity: 0.4; }
+    }
+
+    @keyframes floatGhost {
+      0%   { transform: translateY(0); }
+      50%  { transform: translateY(-10px); }
+      100% { transform: translateY(0); }
+    }
+  </style>
+</head>
+<body>
+  <!-- Ghosts chasing Pac-Man (left to right) -->
+  <div class="track animation-1" style="left: -400px;">
+    <div class="ghost red"></div>
+    <div class="ghost pink"></div>
+    <div class="ghost cyan"></div>
+    <div class="ghost orange"></div>
+    <div class="pacman left"></div>
+  </div>
+
+  <!-- Ghosts fleeing Pac-Man (right to left) -->
+  <div class="track animation-2" style="right: -400px;">
+    <div class="ghost red"></div>
+    <div class="ghost pink"></div>
+    <div class="ghost cyan"></div>
+    <div class="ghost orange"></div>
+    <div class="pacman"></div>
+  </div>
+
+  <div class="dashboard">
+    <h1>🎮 Arcade Dashboard</h1>
+    <div class="stat" id="games">Games Played: ...</div>
+    <div class="stat" id="coins">Coins Inserted: ...</div>
+    <div class="stat" id="uptime">Uptime: ...</div>
+    <button onclick="resetStats()">Reset Stats</button>
+    <div class="loading" id="loading">Updating...</div>
+  </div>
+
+  <script>
+    function formatUptime(seconds) {
+      const h = Math.floor(seconds / 3600);
+      const m = Math.floor((seconds % 3600) / 60);
+      const s = seconds % 60;
+      return `${h}h ${m}m ${s}s`;
+    }
+
+    async function fetchStats() {
+      try {
+        document.getElementById('loading').innerText = "Updating...";
+        const res = await fetch('/stats');
+        const data = await res.json();
+        document.getElementById('games').innerText = "Games Played: " + data.games_played;
+        document.getElementById('coins').innerText = "Coins Inserted: " + data.coins;
+        document.getElementById('uptime').innerText = "Uptime: " + formatUptime(data.uptime);
+        document.getElementById('loading').innerText = "Last updated: " + new Date().toLocaleTimeString();
+      } catch (err) {
+        document.getElementById('games').innerText = "Games Played: ERROR";
+        document.getElementById('coins').innerText = "Coins Inserted: ERROR";
+        document.getElementById('uptime').innerText = "Uptime: ERROR";
+        document.getElementById('loading').innerText = "Failed to fetch data.";
+      }
+    }
+
+    async function resetStats() {
+      await fetch('/reset', { method: 'POST' });
+      fetchStats();
+    }
+
+    fetchStats();
+    setInterval(fetchStats, 2000);
+  </script>
+</body>
+</html>
