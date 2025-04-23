@@ -2,15 +2,16 @@ from flask import Flask, jsonify, send_from_directory, request
 import RPi.GPIO as GPIO
 import time
 
-# Create the Flask app and point it to the static website folder
+# Flask setup
 app = Flask(__name__, static_folder='website')
 
-# Coin counter
+# State variables
 coins = 0
+current_game = None  # None = no current game
 start_time = time.time()
 
-# GPIO setup
-COIN_PIN = 17  # Adjust to match your physical GPIO wiring
+# GPIO Pins
+COIN_PIN = 17  # Coin acceptor pin
 
 GPIO.setmode(GPIO.BCM)
 GPIO.setup(COIN_PIN, GPIO.IN, pull_up_down=GPIO.PUD_UP)
@@ -22,12 +23,28 @@ def coin_inserted(channel):
 
 GPIO.add_event_detect(COIN_PIN, GPIO.FALLING, callback=coin_inserted, bouncetime=300)
 
-# Serve the arcade dashboard
+# Serve HTML
 @app.route('/')
 def serve_home():
     return send_from_directory(app.static_folder, 'index.html')
 
-# Send current stats to the frontend
+# Return current game (new endpoint)
+@app.route('/current_game')
+def get_current_game():
+    return jsonify({
+        "current_game": current_game if current_game else "No current game"
+    })
+
+# Set current game name (for internal tools or UI call)
+@app.route('/set_game', methods=['POST'])
+def set_game():
+    global current_game
+    data = request.get_json()
+    current_game = data.get('game', None)
+    print(f"[*] Game changed to: {current_game}")
+    return jsonify({"message": f"Current game set to '{current_game}'"})
+
+# Send stats to frontend
 @app.route('/stats')
 def stats():
     uptime = round(time.time() - start_time)
@@ -36,15 +53,15 @@ def stats():
         "uptime": uptime
     })
 
-# Reset coins via a button click
+# Reset everything
 @app.route('/reset', methods=['POST'])
 def reset():
-    global coins, start_time
+    global coins, current_game, start_time
     coins = 0
+    current_game = None
     start_time = time.time()
-    print("[*] Coin counter reset.")
-    return jsonify({"message": "Coin counter reset"})
+    return jsonify({"message": "Reset complete"})
 
-# Start the Flask server
+# Start server
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=80)

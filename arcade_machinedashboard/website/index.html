@@ -4,7 +4,6 @@
   <title>Arcade Dashboard</title>
   <style>
     body {
-      margin: 0;
       background: black;
       font-family: 'Courier New', monospace;
       color: #0ff;
@@ -55,7 +54,7 @@
 
     .track {
       position: absolute;
-      bottom: 40px; 
+      bottom: 40px;
       display: flex;
       align-items: center;
       z-index: 0;
@@ -194,6 +193,7 @@
   </style>
 </head>
 <body>
+  <!-- Animations -->
   <div class="track animation-1" style="left: -400px;">
     <div class="ghost red"></div>
     <div class="ghost pink"></div>
@@ -201,7 +201,6 @@
     <div class="ghost orange"></div>
     <div class="pacman"></div>
   </div>
-
   <div class="track animation-2" style="right: -400px;">
     <div class="ghost vulnerable"></div>
     <div class="ghost vulnerable"></div>
@@ -210,36 +209,33 @@
     <div class="pacman left"></div>
   </div>
 
+  <!-- Dashboard -->
   <div class="dashboard">
     <h1>🎮 Arcade Dashboard</h1>
-    <div class="stat" id="games">Games Played: ...</div>
     <div class="stat" id="coins">Coins Inserted: ...</div>
-    <div class="stat" id="uptime">Uptime: ...</div>
+    <div class="stat" id="current-game">Current Game: ...</div>
     <button onclick="resetStats()">Reset Stats</button>
     <div class="loading" id="loading">Updating...</div>
   </div>
 
+  <!-- JS for live updates -->
   <script>
-    function formatUptime(seconds) {
-      const h = Math.floor(seconds / 3600);
-      const m = Math.floor((seconds % 3600) / 60);
-      const s = seconds % 60;
-      return `${h}h ${m}m ${s}s`;
-    }
-
     async function fetchStats() {
       try {
         document.getElementById('loading').innerText = "Updating...";
-        const res = await fetch('/stats');
-        const data = await res.json();
-        document.getElementById('games').innerText = "Games Played: " + data.games_played;
-        document.getElementById('coins').innerText = "Coins Inserted: " + data.coins;
-        document.getElementById('uptime').innerText = "Uptime: " + formatUptime(data.uptime);
+        const [statsRes, gameRes] = await Promise.all([
+          fetch('/stats'),
+          fetch('/current_game')
+        ]);
+        const stats = await statsRes.json();
+        const game = await gameRes.json();
+
+        document.getElementById('coins').innerText = "Coins Inserted: " + stats.coins;
+        document.getElementById('current-game').innerText = "Current Game: " + game.current_game;
         document.getElementById('loading').innerText = "Last updated: " + new Date().toLocaleTimeString();
       } catch (err) {
-        document.getElementById('games').innerText = "Games Played: ERROR";
         document.getElementById('coins').innerText = "Coins Inserted: ERROR";
-        document.getElementById('uptime').innerText = "Uptime: ERROR";
+        document.getElementById('current-game').innerText = "Current Game: ERROR";
         document.getElementById('loading').innerText = "Failed to fetch data.";
       }
     }
