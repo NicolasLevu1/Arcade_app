@@ -1,7 +1,7 @@
 from flask import Flask, jsonify, send_from_directory, request
 import RPi.GPIO as GPIO
 import time
-#made by nicolas levu
+# made by nicolas levu
 # Flask setup
 app = Flask(__name__, static_folder='website')
 
