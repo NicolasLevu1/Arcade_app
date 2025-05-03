@@ -28,6 +28,11 @@ start_time = time.time()
 def serve_home():
     return send_from_directory(app.static_folder, 'index.html')
 
+# Serve Images
+@app.route('/images/<path:filename>')
+def serve_images(filename):
+    return send_from_directory('website/images', filename)
+
 # Return current game (new endpoint)
 @app.route('/current_game')
 def get_current_game():
@@ -64,7 +69,7 @@ def reset_stats():
 
 # Reboot the machine
 @app.route('/reboot', methods=['POST'])
-def reset_stats():
+def reboot():
     # TODO: add code to run sudo reboot
     return jsonify({"message": "Reboot complete"})
 
