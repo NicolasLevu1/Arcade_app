@@ -54,13 +54,19 @@ def stats():
     })
 
 # Reset everything
-@app.route('/reset', methods=['POST'])
-def reset():
+@app.route('/reset_stats', methods=['POST'])
+def reset_stats():
     global coins, current_game, start_time
     coins = 0
     current_game = None
     start_time = time.time()
     return jsonify({"message": "Reset complete"})
+
+# Reboot the machine
+@app.route('/reboot', methods=['POST'])
+def reset_stats():
+    # TODO: add code to run sudo reboot
+    return jsonify({"message": "Reboot complete"})
 
 # Start server
 if __name__ == '__main__':
