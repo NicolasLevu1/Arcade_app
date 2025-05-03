@@ -1,5 +1,5 @@
 from flask import Flask, jsonify, send_from_directory, request
-import RPi.GPIO as GPIO
+# import RPi.GPIO as GPIO
 import time
 # made by nicolas levu
 # Flask setup
@@ -10,18 +10,18 @@ coins = 0
 current_game = None  # None = no current game
 start_time = time.time()
 
-# GPIO Pins
-COIN_PIN = 17  # Coin acceptor pin
+# # GPIO Pins
+# COIN_PIN = 17  # Coin acceptor pin
 
-GPIO.setmode(GPIO.BCM)
-GPIO.setup(COIN_PIN, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+# GPIO.setmode(GPIO.BCM)
+# GPIO.setup(COIN_PIN, GPIO.IN, pull_up_down=GPIO.PUD_UP)
 
-def coin_inserted(channel):
-    global coins
-    coins += 1
-    print(f"[+] Coin inserted! Total: {coins}")
+# def coin_inserted(channel):
+#     global coins
+#     coins += 1
+#     print(f"[+] Coin inserted! Total: {coins}")
 
-GPIO.add_event_detect(COIN_PIN, GPIO.FALLING, callback=coin_inserted, bouncetime=300)
+# GPIO.add_event_detect(COIN_PIN, GPIO.FALLING, callback=coin_inserted, bouncetime=300)
 
 # Serve HTML
 @app.route('/')
