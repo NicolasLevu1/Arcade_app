@@ -149,7 +149,7 @@
       margin: 0 10px;
       animation:
         ghostBlink 1s infinite alternate,
-        floatGhost 2s ease-in-out infinite;
+        floatGhost 1.5s ease-in-out infinite;
     }
 
     .ghost::before, .ghost::after {
@@ -187,9 +187,9 @@
     }
 
     @keyframes floatGhost {
-      0%   { transform: translateY(0); }
-      50%  { transform: translateY(-10px); }
-      100% { transform: translateY(0); }
+      0%   { transform: translateY(-5px); }
+      50%  { transform: translateY(2px); }
+      100% { transform: translateY(-5px); }
     }
   </style>
 </head>
@@ -216,6 +216,7 @@
     <h1>🎮 Arcade Dashboard</h1>
     <div class="stat" id="coins">Coins Inserted: ...</div>
     <div class="stat" id="current-game">Current Game: ...</div>
+    <div class="stat" id="current-time">System Time: ...</div>
     <button onclick="resetStats()">Reset Stats</button>
     <div class="loading" id="loading">Updating...</div>
   </div>
@@ -245,9 +246,33 @@
       await fetch('/reset_stats', { method: 'POST' });
       fetchStats();
     }
+    
+    let systemTime;
+
+    async function getSystemTime() {
+      try {
+        const timeRes = await fetch('/system_time');
+        const systemTimeJson = await timeRes.json();
+        systemTime = systemTimeJson.time;
+
+        const date = new Date(systemTime * 1000)
+
+        document.getElementById('current-time').innerText = "System Time: " + date.toLocaleString();
+      } catch (err) {
+        document.getElementById('current-time').innerText = "System Time: ERROR";
+      }
+    }
+
+    function updateTime() {
+      systemTime = systemTime + 1;
+      const date = new Date(systemTime * 1000)
+      document.getElementById('current-time').innerText = "System Time: " + date.toLocaleString();
+    }
 
     fetchStats();
+    getSystemTime();
     setInterval(fetchStats, 2000);
+    setInterval(updateTime, 1000);
   </script>
 </body>
 </html>

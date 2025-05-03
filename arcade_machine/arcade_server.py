@@ -73,6 +73,13 @@ def reboot():
     # TODO: add code to run sudo reboot
     return jsonify({"message": "Reboot complete"})
 
+# Get the current time on the machine
+@app.route('/system_time')
+def get_system_time():
+    return jsonify({
+        "time": time.time()
+    })
+
 # Start server
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=80)
