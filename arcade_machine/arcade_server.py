@@ -87,6 +87,15 @@ def get_system_time():
         "time": time.time()
     })
 
+# Update the system time
+@app.route('/change_time', methods=['POST'])
+def change_time():
+    data = request.get_json()
+    new_time = data.get('time', None)
+    # TODO: add code that turns off NTP, changes the system time
+    # to new_time, and then reenables NTP.
+    return jsonify({"message": "Changed system time"})
+
 # Start server
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=80)

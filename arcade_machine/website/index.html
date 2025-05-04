@@ -218,6 +218,7 @@
     <div class="stat" id="current-game">Current Game: ...</div>
     <div class="stat" id="current-time">System Time: ...</div>
     <button onclick="resetStats()">Reset Stats</button>
+    <button onclick="changeTime()">Update System Time</button>
     <div class="loading" id="loading">Updating...</div>
   </div>
   <!-- Javascript made by nico not chat -->
@@ -268,6 +269,20 @@
       const date = new Date(systemTime * 1000)
       document.getElementById('current-time').innerText = "System Time: " + date.toLocaleString();
     }
+
+    async function changeTime() {
+      await fetch('/change_time', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          time: Math.floor(Date.now() / 1000)  
+        })
+      });
+
+      getSystemTime();
+    } 
 
     fetchStats();
     getSystemTime();
