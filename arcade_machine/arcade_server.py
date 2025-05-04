@@ -36,6 +36,7 @@ def serve_images(filename):
 # Return current game (new endpoint)
 @app.route('/current_game')
 def get_current_game():
+    # TODO: add code that reads autostart.sh for the current game.
     return jsonify({
         "current_game": current_game if current_game else "No current game"
     })
@@ -46,12 +47,18 @@ def set_game():
     global current_game
     data = request.get_json()
     current_game = data.get('game', None)
+    # TODO: add code that modifies autostart.sh and also kills the current game
+    # and runs the new game.
     print(f"[*] Game changed to: {current_game}")
     return jsonify({"message": f"Current game set to '{current_game}'"})
 
 # Send stats to frontend
 @app.route('/stats')
 def stats():
+    # TODO: this entire thing needs to be redone. The way I'm imagining it is that
+    # the python script controlling the coin slot will track how many coins are inserted
+    # for each game in a json file. Then this function can just return that json file
+    # and the browser can use it to create a chart or bar graph.
     uptime = round(time.time() - start_time)
     return jsonify({
         "coins": coins,
