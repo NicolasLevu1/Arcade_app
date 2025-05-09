@@ -1,6 +1,8 @@
 from flask import Flask, jsonify, send_from_directory, request
 # import RPi.GPIO as GPIO
 import time
+import subprocess
+from datetime import datetime
 # made by nicolas levu
 # Flask setup
 app = Flask(__name__, static_folder='website')
@@ -36,10 +38,18 @@ def serve_images(filename):
 # Return current game (new endpoint)
 @app.route('/current_game')
 def get_current_game():
-    # TODO: add code that reads autostart.sh for the current game.
-    return jsonify({
-        "current_game": current_game if current_game else "No current game"
-    })
+    with open("/opt/retropie/configs/all/autostart.sh", "r") as file:
+        data = file.read()
+
+    try: 
+        game_path = data.strip()
+        game_path = game_path.split("/")[-1]
+        current_game = game_path
+
+        return jsonify({"current_game": current_game})
+    
+    except:
+        return jsonify({"current_game": "No current game"})
 
 # Set current game name (for internal tools or UI call)
 @app.route('/set_game', methods=['POST'])
@@ -55,15 +65,12 @@ def set_game():
 # Send stats to frontend
 @app.route('/stats')
 def stats():
-    # TODO: this entire thing needs to be redone. The way I'm imagining it is that
-    # the python script controlling the coin slot will track how many coins are inserted
-    # for each game in a json file. Then this function can just return that json file
+    # The python script controlling the coin slot will track how many coins are inserted
+    # for each game in a json file. This function can just return that json file
     # and the browser can use it to create a chart or bar graph.
-    uptime = round(time.time() - start_time)
-    return jsonify({
-        "coins": coins,
-        "uptime": uptime
-    })
+    with open("/home/pi/coinslot/coin_info.json", "r") as file:
+        data = file.read()
+    return data
 
 # Reset everything
 @app.route('/reset_stats', methods=['POST'])
@@ -77,8 +84,13 @@ def reset_stats():
 # Reboot the machine
 @app.route('/reboot', methods=['POST'])
 def reboot():
-    # TODO: add code to run sudo reboot
-    return jsonify({"message": "Reboot complete"})
+    try:
+        subprocess.run(["sudo", "reboot"], check=True)
+        return jsonify({"message": "Reboot started"})
+    
+    except subprocess.CalledProcessError as e:
+        print("Failed to reboot system: " + e)
+        return jsonify({"message": "Reboot failed"})
 
 # Get the current time on the machine
 @app.route('/system_time')
@@ -92,8 +104,23 @@ def get_system_time():
 def change_time():
     data = request.get_json()
     new_time = data.get('time', None)
-    # TODO: add code that turns off NTP, changes the system time
-    # to new_time, and then reenables NTP.
+
+    if new_time == None:
+        return jsonify({"message": "Failed to change system time"})
+    
+    # Format new_time to be a string
+    new_time = datetime.fromtimestamp(new_time)
+    new_time = new_time.strftime("%Y-%m-%d %H:%M:%S")
+    
+    try:
+        subprocess.run(["sudo", "timedatectl", "set-ntp", "false"], check=True)
+        subprocess.run(["sudo", "timedatectl", "set-time", new_time], check=True)
+        subprocess.run(["sudo", "timedatectl", "set-ntp", "true"], check=True)
+
+    except subprocess.CalledProcessError as e:
+        print("failed to change system time: " + e)
+        return jsonify({"message": "Failed to change system time"})
+
     return jsonify({"message": "Changed system time"})
 
 # Start server
