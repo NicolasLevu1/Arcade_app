@@ -304,11 +304,11 @@
           const title = document.createElement('h3');
           title.textContent = gameName;
 
-          // Noah's section:
-          // if (gameName = game.current_game) {
-          //   let coins = gameData[gameName].coins
-          //   document.getElementById('coins').innerText = "Coins Inserted: " + coins[coins.length -1];
-          // }
+          // current coins:
+          if (gameName == game.current_game) {
+            let coins = gameData.coins
+            document.getElementById('coins').innerText = "Coins Inserted: " + coins[coins.length-1];
+          }
 
           section.appendChild(title);
 
@@ -354,12 +354,11 @@
           });
         });
 
-        
-        // document.getElementById('coins').innerText = "Coins Inserted: " + coins[coins.length -1];
         document.getElementById('current-game').innerText = "Current Game: " + game.current_game;
         document.getElementById('loading').innerText = "Last updated: " + new Date().toLocaleTimeString();
       } 
       catch (err) {
+        console.log(err)
         document.getElementById('coins').innerText = "Coins Inserted: ERROR";
         document.getElementById('current-game').innerText = "Current Game: ERROR";
         document.getElementById('loading').innerText = "Failed to fetch data.";
