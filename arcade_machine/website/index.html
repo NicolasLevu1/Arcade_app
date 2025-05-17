@@ -3,12 +3,12 @@
 <head>
   <title>Arcade Dashboard</title>
   <link rel="icon" type="image/png" href="/images/icon.png">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
     body {
       background: black;
       font-family: 'Courier New', monospace;
       color: #0ff;
-      overflow: hidden;
     }
 
     h1 {
@@ -54,11 +54,16 @@
     }
 
     .track {
-      position: absolute;
-      bottom: 40px;
+      position: fixed; /* <--- was absolute */
+      bottom: 10px;
+      width: 100%;
       display: flex;
       align-items: center;
+      justify-content: center;
       z-index: 0;
+      pointer-events: none; /* avoids blocking clicks */
+      height: 60px; /* fixes vertical scroll by containing height */
+      overflow: hidden;
     }
 
     .animation-1, .animation-2 {
@@ -76,16 +81,16 @@
     }
 
     @keyframes moveRight {
-      0%   { left: -400px; opacity: 1; }
-      49%  { left: 100vw; opacity: 1; }
+      0%   { left: -100%; opacity: 1; }
+      49%  { left: 100%; opacity: 1; }
       50%  { opacity: 0; }
       100% { opacity: 0; }
     }
 
     @keyframes moveLeft {
       0%, 49% { opacity: 0; }
-      50%  { right: -400px; opacity: 1; }
-      100% { right: 100vw; opacity: 1; }
+      50%  { right: -100%; opacity: 1; }
+      100% { right: 100%; opacity: 1; }
     }
 
     .pacman {
@@ -191,19 +196,52 @@
       50%  { transform: translateY(2px); }
       100% { transform: translateY(-5px); }
     }
+
+    .container {
+      display: flex;
+      flex-direction: column; /* Stack charts vertically */
+      gap: 30px;
+      padding-bottom: 40px;
+      overflow-y: auto; /* Optional: scroll only if needed */
+      scroll-snap-type: y mandatory; /* Optional: snap on scroll */
+    }
+
+    .chart-section {
+      background: #222;
+      border-radius: 16px;
+      padding: 20px;
+      width: 100%;
+      max-width: 600px;
+      margin: 0 auto; /* Center the chart in the middle of the screen */
+      scroll-snap-align: start;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.5);
+      transition: transform 0.3s ease;
+    }
+
+    .chart-section:hover {
+      transform: scale(1.05);
+    }
+
+    canvas {
+      max-width: 100%;
+    }
+
+    h3 {
+      text-align: center;
+    }
   </style>
 </head>
 <body>
   <!--wtf is this wack commentating-->
   <!-- Animations -->
-  <div class="track animation-1" style="left: -400px;">
+  <div class="track animation-1" style="left: 400px;">
     <div class="ghost red"></div>
     <div class="ghost pink"></div>
     <div class="ghost cyan"></div>
     <div class="ghost orange"></div>
     <div class="pacman"></div>
   </div>
-  <div class="track animation-2" style="right: -400px;">
+  <div class="track animation-2" style="right: 400px;">
     <div class="ghost vulnerable"></div>
     <div class="ghost vulnerable"></div>
     <div class="ghost vulnerable"></div>
@@ -221,22 +259,107 @@
     <button onclick="changeTime()">Update System Time</button>
     <div class="loading" id="loading">Updating...</div>
   </div>
+
+  <!-- here is the game stats -->
+  <div class="container" id="chartsContainer"></div>
+
   <!-- Javascript made by nico not chat -->
   <script>
     async function fetchStats() {
+      document.getElementById('loading').innerText = "Updating...";
+
       try {
-        document.getElementById('loading').innerText = "Updating...";
         const [statsRes, gameRes] = await Promise.all([
           fetch('/stats'),
           fetch('/current_game')
         ]);
+
         const stats = await statsRes.json();
+        /*
+          Here's an example of how stats is formatted:
+          
+          const stats = {
+            "Pac-Man": {
+              coins: [3, 2, 5],
+              times: ['2025-05-10 14:30', '2025-05-11 12:15', '2025-05-12 16:45']
+            },
+            "Galaga": {
+              coins: [1, 4, 2],
+              times: ['2025-05-10 13:00', '2025-05-11 14:45', '2025-05-13 18:30']
+            },
+            "Donkey Kong": {
+              coins: [2, 1, 3, 4],
+              times: ['2025-05-09 11:20', '2025-05-10 15:50', '2025-05-12 17:10', '2025-05-14 20:00']
+            }
+          };
+        */
         const game = await gameRes.json();
 
-        document.getElementById('coins').innerText = "Coins Inserted: " + stats.coins;
+        const container = document.getElementById('chartsContainer');
+
+        Object.entries(stats).forEach(([gameName, gameData], index) => {
+          const section = document.createElement('div');
+          section.className = 'chart-section';
+
+          const title = document.createElement('h3');
+          title.textContent = gameName;
+
+          // Noah's section:
+          // if (gameName = game.current_game) {
+          //   let coins = gameData[gameName].coins
+          //   document.getElementById('coins').innerText = "Coins Inserted: " + coins[coins.length -1];
+          // }
+
+          section.appendChild(title);
+
+          const canvas = document.createElement('canvas');
+          canvas.id = `chart${index}`;
+          section.appendChild(canvas);
+          container.appendChild(section);
+
+          new Chart(canvas, {
+            type: 'bar',
+            data: {
+              labels: gameData.times,
+              datasets: [{
+                label: 'Coins Inserted',
+                data: gameData.coins,
+                backgroundColor: 'rgba(255, 206, 86, 0.8)',
+                borderColor: 'rgba(255, 206, 86, 1)',
+                borderWidth: 1,
+                hoverBackgroundColor: 'rgba(255, 206, 86, 1)',
+              }]
+            },
+            options: {
+              responsive: true,
+              animation: {
+                duration: 1000,
+                easing: 'easeOutQuart'
+              },
+              scales: {
+                y: {
+                  beginAtZero: true
+                }
+              },
+              plugins: {
+                tooltip: {
+                  callbacks: {
+                    label: function(context) {
+                      return `Coins: ${context.parsed.y}`;
+                    }
+                  }
+                }
+              }
+            }
+          });
+        });
+
+        
+        // document.getElementById('coins').innerText = "Coins Inserted: " + coins[coins.length -1];
         document.getElementById('current-game').innerText = "Current Game: " + game.current_game;
         document.getElementById('loading').innerText = "Last updated: " + new Date().toLocaleTimeString();
-      } catch (err) {
+      } 
+      catch (err) {
         document.getElementById('coins').innerText = "Coins Inserted: ERROR";
         document.getElementById('current-game').innerText = "Current Game: ERROR";
         document.getElementById('loading').innerText = "Failed to fetch data.";
@@ -286,7 +409,7 @@
 
     fetchStats();
     getSystemTime();
-    setInterval(fetchStats, 2000);
+    // setInterval(fetchStats, 2000);
     setInterval(updateTime, 1000);
   </script>
 </body>
