@@ -35,6 +35,11 @@ def serve_home():
 def serve_images(filename):
     return send_from_directory('website/images', filename)
 
+# Serve Javascript
+@app.route('/js/<path:filename>')
+def serve_js(filename):
+    return send_from_directory('website/js', filename)
+
 # Return current game (new endpoint)
 @app.route('/current_game')
 def get_current_game():
