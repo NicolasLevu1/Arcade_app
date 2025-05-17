@@ -211,7 +211,8 @@
       border-radius: 16px;
       padding: 20px;
       width: 100%;
-      max-width: 600px;
+      max-width: 50%;
+      max-height: 50%;
       margin: 0 auto; /* Center the chart in the middle of the screen */
       scroll-snap-align: start;
       box-shadow: 0 4px 8px rgba(0,0,0,0.5);
@@ -259,7 +260,7 @@
     <div class="stat" id="coins">Coins Inserted: ...</div>
     <div class="stat" id="current-game">Current Game: ...</div>
     <div class="stat" id="current-time">System Time: ...</div>
-    <button onclick="resetStats()">Reset Stats</button>
+    <button onclick="resetStats()">Update Stats</button>
     <button onclick="changeTime()">Update System Time</button>
     <div class="loading" id="loading">Updating...</div>
   </div>
@@ -271,6 +272,9 @@
   <script>
     async function fetchStats() {
       document.getElementById('loading').innerText = "Updating...";
+      const container = document.getElementById('chartsContainer');
+      container.innerHTML = "";  // Clear old charts
+
 
       try {
         const [statsRes, gameRes] = await Promise.all([
@@ -337,12 +341,15 @@
             options: {
               responsive: true,
               animation: {
-                duration: 1000,
+                duration: 3000,
                 easing: 'easeOutQuart'
               },
               scales: {
                 y: {
-                  beginAtZero: true
+                  beginAtZero: true,
+                      ticks: {
+                        stepSize: 1
+                      }
                 }
               },
               plugins: {
@@ -357,6 +364,145 @@
             }
           });
         });
+
+        // Calculate total coins per game
+        const gameNames = [];
+        const coinTotals = [];
+
+        for (const [gameName, gameData] of Object.entries(stats)) {
+          gameNames.push(gameName);
+          const total = gameData.coins.reduce((sum, coins) => sum + coins, 0);
+          coinTotals.push(total);
+        }
+        
+          const summarySection = document.createElement('div');
+          summarySection.className = 'chart-section';
+
+          const summaryTitle = document.createElement('h3');
+          summaryTitle.textContent = 'Total Coins Per Game';
+
+          const summaryCanvas = document.createElement('canvas');
+          summaryCanvas.id = 'summaryChart';
+
+          summarySection.appendChild(summaryTitle);
+          summarySection.appendChild(summaryCanvas);
+          container.appendChild(summarySection);
+
+          // Create the summary bar chart
+          new Chart(summaryCanvas, {
+            type: 'bar',
+            data: {
+              labels: gameNames,
+              datasets: [{
+                label: 'Total Coins',
+                data: coinTotals,
+                backgroundColor: 'rgba(54, 162, 235, 0.7)',
+                borderColor: 'rgba(54, 162, 235, 1)',
+                borderWidth: 1
+              }]
+            },
+            options: {
+              responsive: true,
+              animation: {
+                duration: 3000,
+                easing: 'easeOutQuart'
+              },
+              scales: {
+                y: {
+                  beginAtZero: true,
+                  title: {
+                    display: true,
+                    text: 'Total Coins'
+                  },
+                      ticks: {
+                      stepSize: 1
+                    }
+                },
+              }
+            }
+          });
+
+          // Step 1: Aggregate total coins by date
+const coinTotalsByDate = {};
+
+const today = new Date();
+const sevenDaysAgo = new Date(today);
+sevenDaysAgo.setDate(today.getDate() - 6); // includes today
+
+for (const gameData of Object.values(stats)) {
+  for (let i = 0; i < gameData.times.length; i++) {
+    const rawTime = gameData.times[i];
+    const date = new Date(rawTime);
+    const dateKey = date.toISOString().split('T')[0]; // YYYY-MM-DD
+
+    // Only include dates within the last 7 days
+    if (date >= sevenDaysAgo && date <= today) {
+      coinTotalsByDate[dateKey] = (coinTotalsByDate[dateKey] || 0) + gameData.coins[i];
+    }
+  }
+}
+
+        // Step 2: Sort and prepare labels/data
+        const sortedDates = Object.keys(coinTotalsByDate).sort();
+        const coinsPerDay = sortedDates.map(date => coinTotalsByDate[date]);
+
+        // Step 3: Create DOM elements
+        const dailySummarySection = document.createElement('div');
+        dailySummarySection.className = 'chart-section';
+
+        const dailySummaryTitle = document.createElement('h3');
+        dailySummaryTitle.textContent = 'Coins Per Day (Last 7 Days)';
+
+        const dailySummaryCanvas = document.createElement('canvas');
+        dailySummaryCanvas.id = 'dailySummaryChart';
+
+        dailySummarySection.appendChild(dailySummaryTitle);
+        dailySummarySection.appendChild(dailySummaryCanvas);
+        container.appendChild(dailySummarySection);
+
+        // Step 4: Create the chart
+        new Chart(dailySummaryCanvas, {
+          type: 'bar',
+          data: {
+            labels: sortedDates,
+            datasets: [{
+              label: 'Coins',
+              data: coinsPerDay,
+              backgroundColor: 'rgba(255, 99, 132, 0.7)',
+              borderColor: 'rgba(255, 99, 132, 1)',
+              borderWidth: 1
+            }]
+          },
+          options: {
+            responsive: true,
+            animation: {
+              duration: 2000,
+              easing: 'easeOutQuart'
+            },
+            scales: {
+              y: {
+                beginAtZero: true,
+                ticks: {
+                  stepSize: 1
+                },
+                title: {
+                  display: true,
+                  text: 'Total Coins'
+                }
+              },
+              x: {
+                title: {
+                  display: true,
+                  text: 'Date'
+                }
+              }
+            }
+          }
+        });
+
+
+        
+
 
         document.getElementById('current-game').innerText = "Current Game: " + game.current_game;
         document.getElementById('loading').innerText = "Last updated: " + new Date().toLocaleTimeString();

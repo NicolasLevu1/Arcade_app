@@ -3,6 +3,9 @@ from flask import Flask, jsonify, send_from_directory, request
 import time
 import subprocess
 from datetime import datetime
+import json
+from collections import defaultdict
+
 # made by nicolas levu
 # Flask setup
 app = Flask(__name__, static_folder='website')
@@ -74,9 +77,35 @@ def stats():
     # The python script controlling the coin slot will track how many coins are inserted
     # for each game in a json file. This function can just return that json file
     # and the browser can use it to create a chart or bar graph.
-    # with open("/home/pi/coinslot/coin_info.json", "r") as file:
-    #     data = file.read()
-    # return data
+    with open("/home/pi/coinslot/coin_info.json", "r") as file:
+    # with open("arcade_machine/jsont.json", "r") as file:
+        original_data = json.load(file)
+    combined_data = {}
+
+    for game, values in original_data.items():
+        date_totals = defaultdict(int)
+
+        for timestamp in values["times"]:  # Fixed: no zip
+            # Extract just the date part (YYYY-MM-DD)
+            date = datetime.strptime(timestamp, "%Y-%m-%d %H:%M").date()
+            date_totals[str(date)] += 1
+
+        # Sort the dates
+        sorted_dates = sorted(date_totals.keys())
+
+        combined_data[game] = {
+            "coins": [date_totals[d] for d in sorted_dates],
+            "times": sorted_dates
+        }
+
+    # Now you can return or save combined_data
+    print(json.dumps(combined_data, indent=2))
+
+    #get a list that takes the dates and combines then into their hours
+    return json.dumps(combined_data, indent=2)
+
+'''
+
     return """
     {
         "Pac-Man": {
@@ -93,6 +122,7 @@ def stats():
         }
     }
     """
+    '''
 
 # Reset everything
 @app.route('/reset_stats', methods=['POST'])
