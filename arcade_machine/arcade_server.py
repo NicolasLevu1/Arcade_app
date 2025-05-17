@@ -46,19 +46,18 @@ def serve_js(filename):
 # Return current game (new endpoint)
 @app.route('/current_game')
 def get_current_game():
-    # with open("/opt/retropie/configs/all/autostart.sh", "r") as file:
-    #     data = file.read()
+    with open("/opt/retropie/configs/all/autostart.sh", "r") as file:
+        data = file.read()
 
-    # try: 
-    #     game_path = data.strip()
-    #     game_path = game_path.split("/")[-1]
-    #     current_game = game_path
+    try: 
+        game_path = data.strip()
+        game_path = game_path.split("/")[-1]
+        current_game = game_path
 
-    #     return jsonify({"current_game": current_game})
+        return jsonify({"current_game": current_game})
     
-    # except:
-    #     return jsonify({"current_game": "No current game"})
-    return jsonify({"current_game": "Pac-Man"})
+    except:
+        return jsonify({"current_game": "No current game"})
 
 # Set current game name (for internal tools or UI call)
 @app.route('/set_game', methods=['POST'])
