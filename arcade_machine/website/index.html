@@ -262,6 +262,8 @@
     <div class="stat" id="current-time">System Time: ...</div>
     <button onclick="resetStats()">Update Stats</button>
     <button onclick="changeTime()">Update System Time</button>
+    <button onclick="reboot()">Reboot Machine</button>
+
     <div class="loading" id="loading">Updating...</div>
   </div>
 
@@ -555,7 +557,9 @@ for (const gameData of Object.values(stats)) {
 
       getSystemTime();
     } 
-
+    async function reboot() {
+      await fetch('/reboot', { method: 'POST' });
+    } 
     fetchStats();
     getSystemTime();
     // setInterval(fetchStats, 2000);
