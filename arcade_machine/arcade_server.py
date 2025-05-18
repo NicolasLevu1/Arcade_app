@@ -1,4 +1,4 @@
-from flask import Flask, jsonify, send_from_directory, request
+from flask import Flask, jsonify, send_from_directory, request, redirect
 # import RPi.GPIO as GPIO
 import time
 import subprocess
@@ -27,7 +27,16 @@ start_time = time.time()
 #     print(f"[+] Coin inserted! Total: {coins}")
 
 # GPIO.add_event_detect(COIN_PIN, GPIO.FALLING, callback=coin_inserted, bouncetime=300)
-
+#i love changed
+@app.route("/connecttest.txt")
+@app.route("/generate_204")
+@app.route("/204")
+@app.route("/ncsi.txt")
+@app.route("/redirect")
+@app.route("/success.txt")
+@app.route("/hotspot-detect.html")
+def captive_portal():
+    return redirect("/")
 # Serve HTML
 @app.route('/')
 def serve_home():

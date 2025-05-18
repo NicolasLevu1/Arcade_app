@@ -258,6 +258,7 @@
   <div class="dashboard">
     <h1>🎮 Arcade Dashboard</h1>
     <div class="stat" id="coins">Coins Inserted: ...</div>
+    <div class="stat" id="money">Total Money Collected: ...</div>
     <div class="stat" id="current-game">Current Game: ...</div>
     <div class="stat" id="current-time">System Time: ...</div>
     <button onclick="resetStats()">Update Stats</button>
@@ -318,7 +319,10 @@
           if (gameName == game.current_game) {
             let coins = gameData.coins
             document.getElementById('coins').innerText = "Coins Inserted: " + coins[coins.length-1];
+
           }
+
+          
 
           section.appendChild(title);
 
@@ -370,12 +374,17 @@
         // Calculate total coins per game
         const gameNames = [];
         const coinTotals = [];
+        var cashCollected = 0;
 
         for (const [gameName, gameData] of Object.entries(stats)) {
           gameNames.push(gameName);
           const total = gameData.coins.reduce((sum, coins) => sum + coins, 0);
           coinTotals.push(total);
+          cashCollected = cashCollected + total*.25
         }
+
+          document.getElementById('money').innerText = "Total Money Collected: $" + cashCollected;
+
         
           const summarySection = document.createElement('div');
           summarySection.className = 'chart-section';
