@@ -1,5 +1,4 @@
 from flask import Flask, jsonify, send_from_directory, request, redirect
-# import RPi.GPIO as GPIO
 import time
 import subprocess
 from datetime import datetime
@@ -11,23 +10,9 @@ from collections import defaultdict
 app = Flask(__name__, static_folder='website')
 
 # State variables
-coins = 0
 current_game = None  # None = no current game
-start_time = time.time()
 
-# # GPIO Pins
-# COIN_PIN = 17  # Coin acceptor pin
-
-# GPIO.setmode(GPIO.BCM)
-# GPIO.setup(COIN_PIN, GPIO.IN, pull_up_down=GPIO.PUD_UP)
-
-# def coin_inserted(channel):
-#     global coins
-#     coins += 1
-#     print(f"[+] Coin inserted! Total: {coins}")
-
-# GPIO.add_event_detect(COIN_PIN, GPIO.FALLING, callback=coin_inserted, bouncetime=300)
-#i love changed
+# Auto Redirect
 @app.route("/connecttest.txt")
 @app.route("/generate_204")
 @app.route("/204")
@@ -37,6 +22,7 @@ start_time = time.time()
 @app.route("/hotspot-detect.html")
 def captive_portal():
     return redirect("/")
+
 # Serve HTML
 @app.route('/')
 def serve_home():
@@ -131,15 +117,6 @@ def stats():
     }
     """
     '''
-
-# Reset everything
-@app.route('/reset_stats', methods=['POST'])
-def reset_stats():
-    global coins, current_game, start_time
-    coins = 0
-    current_game = None
-    start_time = time.time()
-    return jsonify({"message": "Reset complete"})
 
 # Reboot the machine
 @app.route('/reboot', methods=['POST'])
