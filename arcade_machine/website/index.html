@@ -264,6 +264,7 @@
     <button onclick="resetStats()">Update Stats</button>
     <button onclick="changeTime()">Update System Time</button>
     <button onclick="reboot()">Reboot Machine</button>
+    <button onclick="setGame()">Set Digdug</button>
 
     <div class="loading" id="loading">Updating...</div>
   </div>
@@ -566,9 +567,25 @@ for (const gameData of Object.values(stats)) {
 
       getSystemTime();
     } 
+
+    async function setGame() {
+      await fetch('/set_game', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          game: "digdug.zip"  
+        })
+      });
+
+      fetchStats()
+    }
+
     async function reboot() {
       await fetch('/reboot', { method: 'POST' });
     } 
+    
     fetchStats();
     getSystemTime();
     // setInterval(fetchStats, 2000);

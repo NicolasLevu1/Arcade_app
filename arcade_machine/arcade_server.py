@@ -1,6 +1,8 @@
 from flask import Flask, jsonify, send_from_directory, request, redirect
 import time
 import subprocess
+import os
+import signal
 from datetime import datetime
 import json
 from collections import defaultdict
@@ -9,8 +11,36 @@ from collections import defaultdict
 # Flask setup
 app = Flask(__name__, static_folder='website')
 
-# State variables
-current_game = None  # None = no current game
+# Constants
+FILE_GAMELIST = "/home/pi/game_selector/random_games.json"
+FILE_AUTOSTART = "/opt/retropie/configs/all/autostart.sh"
+FILE_COININFO = "/home/pi/coinslot/coin_info.json"
+
+def getGameFullPath(file_name):
+    """ Takes the filename of a game and returns the full command for running the game."""
+    with open(FILE_GAMELIST, "r") as file:
+        data = file.read()
+    
+    game_list = data["games"]
+
+    for game in game_list:
+        if file_name in game:
+            return game
+        
+    print("The game you are trying to access doesn't exist.")
+    return None
+
+def getCurrentGameFile():
+    """ Returns the file name of the game currently set to run on the machine. """
+    with open(FILE_AUTOSTART, "r") as file:
+        data = file.read()
+    
+    try:
+        game_path = data.strip()
+        game_path = game_path.split("/")[-1] # Get whatever filename follows the last slash
+        return game_path
+    except:
+        return None
 
 # Auto Redirect
 @app.route("/connecttest.txt")
@@ -38,32 +68,45 @@ def serve_images(filename):
 def serve_js(filename):
     return send_from_directory('website/js', filename)
 
-# Return current game (new endpoint)
+# Return current game
 @app.route('/current_game')
 def get_current_game():
-    with open("/opt/retropie/configs/all/autostart.sh", "r") as file:
-        data = file.read()
-
-    try: 
-        game_path = data.strip()
-        game_path = game_path.split("/")[-1]
-        current_game = game_path
-
-        return jsonify({"current_game": current_game})
+    current_game = getCurrentGameFile()
     
-    except:
-        return jsonify({"current_game": "No current game"})
+    if current_game != None:
+        return jsonify({"current_game": current_game})
+
+    return jsonify({"current_game": "No current game"})
 
 # Set current game name (for internal tools or UI call)
 @app.route('/set_game', methods=['POST'])
 def set_game():
-    global current_game
     data = request.get_json()
-    current_game = data.get('game', None)
-    # TODO: add code that modifies autostart.sh and also kills the current game
-    # and runs the new game.
-    print(f"[*] Game changed to: {current_game}")
-    return jsonify({"message": f"Current game set to '{current_game}'"})
+    new_game = data.get('game', None)
+
+    # Get the current game that's running
+    current_game = getCurrentGameFile()
+
+    # Get full command for new game
+    game_command = getGameFullPath(new_game)
+    if game_command == None:
+        # Throw Error
+        return jsonify({"message": "The game you are trying to set doesn't exist."})
+
+    # Rewrite autostart.sh
+    with open(FILE_AUTOSTART, "w") as file:
+        file.write(game_command + "\n")
+    
+    # Kill the current game
+    if current_game != None:
+        subprocess.run(["pkill", "retroarch"])
+        time.sleep(0.5)
+
+    # Run the new game
+    subprocess.Popen(game_command.split(" "))
+
+    print(f"[*] Game changed to: {new_game}")
+    return jsonify({"message": f"Current game set to '{new_game}'"})
 
 # Send stats to frontend
 @app.route('/stats')
@@ -71,7 +114,7 @@ def stats():
     # The python script controlling the coin slot will track how many coins are inserted
     # for each game in a json file. This function can just return that json file
     # and the browser can use it to create a chart or bar graph.
-    with open("/home/pi/coinslot/coin_info.json", "r") as file:
+    with open(FILE_COININFO, "r") as file:
     # with open("arcade_machine/jsont.json", "r") as file:
         original_data = json.load(file)
     combined_data = {}
