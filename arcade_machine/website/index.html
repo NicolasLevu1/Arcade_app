@@ -234,6 +234,28 @@
     #chartsContainer {
       padding-top: 20px;
     }
+
+    table {
+      width: 50%;
+      border-collapse: collapse;
+      margin: 20px auto;
+      font-family: Arial, sans-serif;
+    }
+
+    th, td {
+      border: 1px solid #0ff;
+      padding: 10px;
+      text-align: center;
+    }
+
+    input[type="radio"] {
+      transform: scale(1.35);
+    }
+
+    th {
+      background-color: #0ff;
+      color: #000;
+    }
   </style>
 </head>
 <body>
@@ -264,10 +286,44 @@
     <button onclick="resetStats()">Refresh Stats</button>
     <button onclick="changeTime()">Update System Time</button>
     <button onclick="reboot()">Reboot Machine</button>
-    <button onclick="setGame()">Set Digdug</button>
 
     <div class="loading" id="loading">Updating...</div>
   </div>
+
+  <!-- Here is the game table -->
+  <table>
+    <thead>
+      <tr>
+        <th style="width: 60px;">Current Game</th>
+        <th>Game</th>
+        <th>Days Played</th>
+        <th>Total Coins</th>
+      </tr>
+    </thead>
+    <tbody id="game-table">
+    </tbody>
+  </table>
+
+  <script> 
+    function generateGameTable(stats, currentGame) {
+
+      // Erase previous entries
+      document.getElementById("game-table").innerHTML = ''
+
+      Object.entries(stats).forEach(([gameName, gameData], index) => {
+        const tr = document.createElement('tr');
+
+        tr.innerHTML = `
+          <td><input type="radio" name="choose" value="${index + 1}" ${gameName === currentGame.current_game ? 'checked' : ''} onchange="setGame('${gameName}')"/></td>
+          <td>${gameName}</td>
+          <td>${gameData.times.length}</td>
+          <td>${gameData.coins.reduce((sum, coins) => sum + coins, 0)}</td>
+        `;
+
+        document.getElementById("game-table").appendChild(tr);
+      })
+    }
+  </script>
 
   <!-- here is the game stats -->
   <div class="container" id="chartsContainer"></div>
@@ -305,6 +361,8 @@
           };
         */
         const game = await gameRes.json();
+
+        generateGameTable(stats, game)
 
         const container = document.getElementById('chartsContainer');
 
@@ -569,14 +627,14 @@
       getSystemTime();
     } 
 
-    async function setGame() {
+    async function setGame(gameName) {
       await fetch('/set_game', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({
-          game: "digdug.zip"  
+          game: gameName  
         })
       });
 
