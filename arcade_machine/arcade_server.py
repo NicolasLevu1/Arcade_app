@@ -1,8 +1,6 @@
 from flask import Flask, jsonify, send_from_directory, request, redirect
 import time
 import subprocess
-import os
-import signal
 from datetime import datetime
 import json
 from collections import defaultdict
@@ -100,7 +98,6 @@ def set_game():
     # Kill the current game
     if current_game != None:
         subprocess.run(["pkill", "retroarch"])
-        time.sleep(0.5)
 
     # Run the new game
     subprocess.Popen(game_command.split(" "))
@@ -136,11 +133,10 @@ def stats():
         }
 
     # Now you can return or save combined_data
-    print(json.dumps(combined_data, indent=2))
+    #print(json.dumps(combined_data, indent=2))
 
     #get a list that takes the dates and combines then into their hours
     return json.dumps(combined_data, indent=2)
-
 '''
 
     return """
