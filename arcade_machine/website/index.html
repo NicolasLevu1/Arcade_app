@@ -261,7 +261,7 @@
     <div class="stat" id="money">Total Money Collected: ...</div>
     <div class="stat" id="current-game">Current Game: ...</div>
     <div class="stat" id="current-time">System Time: ...</div>
-    <button onclick="resetStats()">Update Stats</button>
+    <button onclick="resetStats()">Refresh Stats</button>
     <button onclick="changeTime()">Update System Time</button>
     <button onclick="reboot()">Reboot Machine</button>
     <button onclick="setGame()">Set Digdug</button>
@@ -278,7 +278,6 @@
       document.getElementById('loading').innerText = "Updating...";
       const container = document.getElementById('chartsContainer');
       container.innerHTML = "";  // Clear old charts
-
 
       try {
         const [statsRes, gameRes] = await Promise.all([
@@ -320,10 +319,7 @@
           if (gameName == game.current_game) {
             let coins = gameData.coins
             document.getElementById('coins').innerText = "Coins Inserted: " + coins[coins.length-1];
-
           }
-
-          
 
           section.appendChild(title);
 
@@ -332,17 +328,19 @@
           section.appendChild(canvas);
           container.appendChild(section);
 
+        if (gameData.coins && gameData.coins.length !== 0) { // Don't create charts for games with no coin data
           new Chart(canvas, {
             type: 'bar',
             data: {
-              labels: gameData.times,
+              labels: gameData.times.slice(-10),
               datasets: [{
                 label: 'Coins Inserted',
-                data: gameData.coins,
+                data: gameData.coins.slice(-10),
                 backgroundColor: 'rgba(255, 206, 86, 0.8)',
                 borderColor: 'rgba(255, 206, 86, 1)',
                 borderWidth: 1,
                 hoverBackgroundColor: 'rgba(255, 206, 86, 1)',
+                maxBarThickness: 180
               }]
             },
             options: {
@@ -354,6 +352,7 @@
               scales: {
                 y: {
                   beginAtZero: true,
+                  suggestedMax: 10,
                       ticks: {
                         stepSize: 1
                       }
@@ -370,28 +369,30 @@
               }
             }
           });
+        }
         });
 
-        // Calculate total coins per game
+        // Calculate average coins per game
         const gameNames = [];
-        const coinTotals = [];
+        const coinAverages = [];
         var cashCollected = 0;
 
         for (const [gameName, gameData] of Object.entries(stats)) {
-          gameNames.push(gameName);
-          const total = gameData.coins.reduce((sum, coins) => sum + coins, 0);
-          coinTotals.push(total);
-          cashCollected = cashCollected + total*.25
+          if (gameData.coins && gameData.coins.length !== 0) {
+            gameNames.push(gameName);
+            const total = gameData.coins.reduce((sum, coins) => sum + coins, 0);
+            cashCollected = cashCollected + total*.25
+            coinAverages.push(total / gameData.coins.length);
+          }
         }
 
           document.getElementById('money').innerText = "Total Money Collected: $" + cashCollected;
 
-        
           const summarySection = document.createElement('div');
           summarySection.className = 'chart-section';
 
           const summaryTitle = document.createElement('h3');
-          summaryTitle.textContent = 'Total Coins Per Game';
+          summaryTitle.textContent = 'Average Coins Per Game';
 
           const summaryCanvas = document.createElement('canvas');
           summaryCanvas.id = 'summaryChart';
@@ -406,11 +407,12 @@
             data: {
               labels: gameNames,
               datasets: [{
-                label: 'Total Coins',
-                data: coinTotals,
+                label: 'Average Coins',
+                data: coinAverages,
                 backgroundColor: 'rgba(54, 162, 235, 0.7)',
                 borderColor: 'rgba(54, 162, 235, 1)',
-                borderWidth: 1
+                borderWidth: 1,
+                maxBarThickness: 180
               }]
             },
             options: {
@@ -422,9 +424,10 @@
               scales: {
                 y: {
                   beginAtZero: true,
+                  suggestedMax: 10,
                   title: {
                     display: true,
-                    text: 'Total Coins'
+                    text: 'Average Coins'
                   },
                       ticks: {
                       stepSize: 1
@@ -482,7 +485,8 @@ for (const gameData of Object.values(stats)) {
               data: coinsPerDay,
               backgroundColor: 'rgba(255, 99, 132, 0.7)',
               borderColor: 'rgba(255, 99, 132, 1)',
-              borderWidth: 1
+              borderWidth: 1,
+              maxBarThickness: 180
             }]
           },
           options: {
@@ -494,6 +498,7 @@ for (const gameData of Object.values(stats)) {
             scales: {
               y: {
                 beginAtZero: true,
+                suggestedMax: 10,
                 ticks: {
                   stepSize: 1
                 },
@@ -511,10 +516,6 @@ for (const gameData of Object.values(stats)) {
             }
           }
         });
-
-
-        
-
 
         document.getElementById('current-game').innerText = "Current Game: " + game.current_game;
         document.getElementById('loading').innerText = "Last updated: " + new Date().toLocaleTimeString();
@@ -585,7 +586,7 @@ for (const gameData of Object.values(stats)) {
     async function reboot() {
       await fetch('/reboot', { method: 'POST' });
     } 
-    
+
     fetchStats();
     getSystemTime();
     // setInterval(fetchStats, 2000);
