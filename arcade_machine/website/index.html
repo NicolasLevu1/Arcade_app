@@ -328,48 +328,48 @@
           section.appendChild(canvas);
           container.appendChild(section);
 
-        if (gameData.coins && gameData.coins.length !== 0) { // Don't create charts for games with no coin data
-          new Chart(canvas, {
-            type: 'bar',
-            data: {
-              labels: gameData.times.slice(-10),
-              datasets: [{
-                label: 'Coins Inserted',
-                data: gameData.coins.slice(-10),
-                backgroundColor: 'rgba(255, 206, 86, 0.8)',
-                borderColor: 'rgba(255, 206, 86, 1)',
-                borderWidth: 1,
-                hoverBackgroundColor: 'rgba(255, 206, 86, 1)',
-                maxBarThickness: 180
-              }]
-            },
-            options: {
-              responsive: true,
-              animation: {
-                duration: 3000,
-                easing: 'easeOutQuart'
+          if (gameData.coins && gameData.coins.length !== 0) { // Don't create charts for games with no coin data
+            new Chart(canvas, {
+              type: 'bar',
+              data: {
+                labels: gameData.times.slice(-10),
+                datasets: [{
+                  label: 'Coins Inserted',
+                  data: gameData.coins.slice(-10),
+                  backgroundColor: 'rgba(255, 206, 86, 0.8)',
+                  borderColor: 'rgba(255, 206, 86, 1)',
+                  borderWidth: 1,
+                  hoverBackgroundColor: 'rgba(255, 206, 86, 1)',
+                  maxBarThickness: 180
+                }]
               },
-              scales: {
-                y: {
-                  beginAtZero: true,
-                  suggestedMax: 10,
-                      ticks: {
-                        stepSize: 1
+              options: {
+                responsive: true,
+                animation: {
+                  duration: 3000,
+                  easing: 'easeOutQuart'
+                },
+                scales: {
+                  y: {
+                    beginAtZero: true,
+                    suggestedMax: 10,
+                        ticks: {
+                          stepSize: 1
+                        }
+                  }
+                },
+                plugins: {
+                  tooltip: {
+                    callbacks: {
+                      label: function(context) {
+                        return `Coins: ${context.parsed.y}`;
                       }
-                }
-              },
-              plugins: {
-                tooltip: {
-                  callbacks: {
-                    label: function(context) {
-                      return `Coins: ${context.parsed.y}`;
                     }
                   }
                 }
               }
-            }
-          });
-        }
+            });
+          }
         });
 
         // Calculate average coins per game
@@ -386,76 +386,76 @@
           }
         }
 
-          document.getElementById('money').innerText = "Total Money Collected: $" + cashCollected;
+        document.getElementById('money').innerText = "Total Money Collected: $" + cashCollected;
 
-          const summarySection = document.createElement('div');
-          summarySection.className = 'chart-section';
+        const summarySection = document.createElement('div');
+        summarySection.className = 'chart-section';
 
-          const summaryTitle = document.createElement('h3');
-          summaryTitle.textContent = 'Average Coins Per Game';
+        const summaryTitle = document.createElement('h3');
+        summaryTitle.textContent = 'Average Coins Per Game';
 
-          const summaryCanvas = document.createElement('canvas');
-          summaryCanvas.id = 'summaryChart';
+        const summaryCanvas = document.createElement('canvas');
+        summaryCanvas.id = 'summaryChart';
 
-          summarySection.appendChild(summaryTitle);
-          summarySection.appendChild(summaryCanvas);
-          container.appendChild(summarySection);
+        summarySection.appendChild(summaryTitle);
+        summarySection.appendChild(summaryCanvas);
+        container.appendChild(summarySection);
 
-          // Create the summary bar chart
-          new Chart(summaryCanvas, {
-            type: 'bar',
-            data: {
-              labels: gameNames,
-              datasets: [{
-                label: 'Average Coins',
-                data: coinAverages,
-                backgroundColor: 'rgba(54, 162, 235, 0.7)',
-                borderColor: 'rgba(54, 162, 235, 1)',
-                borderWidth: 1,
-                maxBarThickness: 180
-              }]
+        // Create the summary bar chart
+        new Chart(summaryCanvas, {
+          type: 'bar',
+          data: {
+            labels: gameNames,
+            datasets: [{
+              label: 'Average Coins',
+              data: coinAverages,
+              backgroundColor: 'rgba(54, 162, 235, 0.7)',
+              borderColor: 'rgba(54, 162, 235, 1)',
+              borderWidth: 1,
+              maxBarThickness: 180
+            }]
+          },
+          options: {
+            responsive: true,
+            animation: {
+              duration: 3000,
+              easing: 'easeOutQuart'
             },
-            options: {
-              responsive: true,
-              animation: {
-                duration: 3000,
-                easing: 'easeOutQuart'
-              },
-              scales: {
-                y: {
-                  beginAtZero: true,
-                  suggestedMax: 10,
-                  title: {
-                    display: true,
-                    text: 'Average Coins'
-                  },
-                      ticks: {
-                      stepSize: 1
-                    }
+            scales: {
+              y: {
+                beginAtZero: true,
+                suggestedMax: 10,
+                title: {
+                  display: true,
+                  text: 'Average Coins'
                 },
-              }
+                    ticks: {
+                    stepSize: 1
+                  }
+              },
             }
-          });
+          }
+        });
 
-          // Step 1: Aggregate total coins by date
-const coinTotalsByDate = {};
+        // Step 1: Aggregate total coins by date
+        const coinTotalsByDate = {};
 
-const today = new Date();
-const sevenDaysAgo = new Date(today);
-sevenDaysAgo.setDate(today.getDate() - 6); // includes today
+        const today = new Date();
+        const sevenDaysAgo = new Date(today);
+        sevenDaysAgo.setDate(today.getDate() - 6); // includes today
 
-for (const gameData of Object.values(stats)) {
-  for (let i = 0; i < gameData.times.length; i++) {
-    const rawTime = gameData.times[i];
-    const date = new Date(rawTime);
-    const dateKey = date.toISOString().split('T')[0]; // YYYY-MM-DD
+        for (const gameData of Object.values(stats)) {
+          for (let i = 0; i < gameData.times.length; i++) {
+            const rawTime = gameData.times[i];
+            const date = new Date(rawTime);
+            const dateKey = date.toISOString().split('T')[0]; // YYYY-MM-DD
 
-    // Only include dates within the last 7 days
-    if (date >= sevenDaysAgo && date <= today) {
-      coinTotalsByDate[dateKey] = (coinTotalsByDate[dateKey] || 0) + gameData.coins[i];
-    }
-  }
-}
+            // Only include dates within the last 7 days
+            if (date >= sevenDaysAgo && date <= today) {
+              coinTotalsByDate[dateKey] = (coinTotalsByDate[dateKey] || 0) + gameData.coins[i];
+            }
+          }
+        }
 
         // Step 2: Sort and prepare labels/data
         const sortedDates = Object.keys(coinTotalsByDate).sort();
