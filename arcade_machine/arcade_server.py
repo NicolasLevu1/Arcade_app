@@ -17,7 +17,7 @@ FILE_COININFO = "/home/pi/coinslot/coin_info.json"
 def getGameFullPath(file_name):
     """ Takes the filename of a game and returns the full command for running the game."""
     with open(FILE_GAMELIST, "r") as file:
-        data = json.load()
+        data = json.load(file)
     
     game_list = data["games"]
 
