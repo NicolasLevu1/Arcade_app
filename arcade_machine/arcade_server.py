@@ -17,7 +17,7 @@ FILE_COININFO = "/home/pi/coinslot/coin_info.json"
 def getGameFullPath(file_name):
     """ Takes the filename of a game and returns the full command for running the game."""
     with open(FILE_GAMELIST, "r") as file:
-        data = file.read()
+        data = json.load()
     
     game_list = data["games"]
 
@@ -100,7 +100,7 @@ def set_game():
         subprocess.run(["pkill", "retroarch"])
 
     # Run the new game
-    subprocess.Popen(game_command.split(" "))
+    subprocess.Popen(["sudo", "-u", "pi"] + game_command.split(" "))
 
     print(f"[*] Game changed to: {new_game}")
     return jsonify({"message": f"Current game set to '{new_game}'"})
