@@ -100,7 +100,7 @@ def set_game():
         subprocess.run(["pkill", "retroarch"])
 
     # Run the new game
-    subprocess.Popen(["sudo", "-u", "pi"] + game_command.split(" "))
+    subprocess.Popen(["sudo", "openvt", "-c", "1", "-f", "--", "bash", "-c"] + game_command.split(" "))
 
     print(f"[*] Game changed to: {new_game}")
     return jsonify({"message": f"Current game set to '{new_game}'"})
